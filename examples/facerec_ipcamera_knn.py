@@ -86,15 +86,15 @@ def train(train_dir, model_save_path=None, n_neighbors=None, knn_algo='ball_tree
             image = face_recognition.load_image_file(img_path)
             face_bounding_boxes = face_recognition.face_locations(image)
 
-            if len(face_bounding_boxes) != 1:
-                # If there are no people (or too many people) in a training image, skip the image.
-                if verbose:
-                    print("Image {} not suitable for training: {}".format(img_path, "Didn't find a face" if len(face_bounding_boxes) < 1 else "Found more than one face"))
-            else:
+            if len(face_bounding_boxes) == 1:
                 # Add face encoding for current image to the training set
                 X.append(face_recognition.face_encodings(image, known_face_locations=face_bounding_boxes)[0])
                 y.append(class_dir)
 
+            elif verbose:
+                print(
+                    f"""Image {img_path} not suitable for training: {"Didn't find a face" if len(face_bounding_boxes) < 1 else "Found more than one face"}"""
+                )
     # Determine how many neighbors to use for weighting in the KNN classifier
     if n_neighbors is None:
         n_neighbors = int(round(math.sqrt(len(X))))
@@ -181,10 +181,7 @@ def show_prediction_labels_on_image(frame, predictions):
 
     # Remove the drawing library from memory as per the Pillow docs.
     del draw
-    # Save image in open-cv format to be able to show it.
-
-    opencvimage = np.array(pil_image)
-    return opencvimage
+    return np.array(pil_image)
 
 
 if __name__ == "__main__":
